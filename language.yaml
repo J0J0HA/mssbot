@@ -1,0 +1,55 @@
+commands:
+  announce:
+    description: "Eine Ankündigung veröffentlichen"
+    arguments:
+      channel: "Kanal, in dem die Ankündigung veröffentlicht werden soll"
+      message: "Nachricht der Ankündigung"
+      title: "Titel der Ankündigung"
+      image: "Ein Bild, das der Ankündigung angefügt wird"
+      thumbnail: "Ein kleines Bild, das der Ankündigung angefügt wird"
+      attachment: "Ein Anhang, z.B. eine PDF"
+  editannounce:
+    description: "Eine Ankündigung bearbeiten"
+    arguments:
+      msgid: "Nachrichtenlink zu der Ankündigung"
+      message: "Nachricht der Ankündigung, falls Änderung erwünscht"
+      title: "Titel der Ankündigung, falls Änderung erwünscht"
+  reloadconfig:
+    description: "Einstellungen des Bots neu laden"
+  tag:
+    description: "Eine vorgefertigte Nachricht posten"
+    arguments:
+      tag: "Den Tag der Nachricht"
+  form:
+    description: "Eine Nachricht senden und den Inhalt formatieren (!f kann auch verwendet werden)"
+    arguments:
+      text: "Den zu formatierenden Text"
+
+messages:
+  no-permission:
+    to-run-command: ":no_entry: Du hast keine Berechtigung, diesen Befehl auszuführen!"
+  announcements:
+    published: ":white_check_mark: Die Ankündigung wurde mit {0} Anhängen veröffentlicht."
+    edited: ":white_check_mark: Die Ankündigung wurde bearbeitet und hat {0} Anhänge."
+    note-manually: "Manuelle Ankündigung" # Unused
+    default-title: ":mailbox: Ankündigung"
+    author: "von {0}"
+    author_edited: "von {0} bearbeitet"
+    error: "Die Ankündigung konnte nicht bearbeitet werden: {0}"
+  system:
+    bot-ready: "Wir sind als {0} eingeloggt."
+  reload:
+    trying: "Versuche, Konfigurationsdateien neu zu laden..."
+    failed: "Es ist ein Fehler aufgetreten.\n\n```\n{0}\n```"
+    success: "Erfolgreich neu geladen. Um manche Einstellungen neu zu laden, muss der Bot allerdings neu gestartet werden."
+  tag:
+    not-found: "Das Tag {0} existiert nicht"
+    author: "von {0}"
+  ex-f:
+    used: "_@!sender via !f_\n\n{0}"
+  react-roles:
+    default-message: "Reagiere, um die Einstellungen zu treffen:"
+  
+  general:
+    join: "Wilkommen, @!sender!"
+    welcome: "Willkommen in unserem MSS Server, @!sender!"
