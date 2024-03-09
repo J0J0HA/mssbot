@@ -38,6 +38,8 @@ profile:
       type: listening
     - name: '"Ich hab keinen Bock mehr auf diese Scheiße." - Carmela'
       type: listening
+    - name: '"Ich habe Probleme." - Eric'
+      type: listening
     - name: Discordbot-Simulator
       type: playing
   names:
@@ -49,5 +51,5 @@ roles:
   mod: 1204872635566133248
   mss-news: 1208921680517529710
   server-news: 1208913716385415250
-  trust: 1204872856400568412
   updater: 1204873098134822962
+  trusted: 1204872856400568412

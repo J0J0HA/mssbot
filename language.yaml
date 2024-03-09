@@ -23,7 +23,15 @@ commands:
   form:
     description: "Eine Nachricht senden und den Inhalt formatieren (!f kann auch verwendet werden)"
     arguments:
-      text: "Den zu formatierenden Text"
+      text: "Der zu formatierende Text"
+  trust:
+    description: "Einen Nutzer zu den Vertrauten hinzufügen"
+    arguments:
+      member: "Der zu Vertrauende Nutzer"
+  untrust:
+    description: "Einen Nutzer von den Vertrauten entfernen"
+    arguments:
+      member: "Der zu Entfernende Nutzer"
 
 messages:
   no-permission:
@@ -43,13 +51,22 @@ messages:
     failed: "Es ist ein Fehler aufgetreten.\n\n```\n{0}\n```"
     success: "Erfolgreich neu geladen. Um manche Einstellungen neu zu laden, muss der Bot allerdings neu gestartet werden."
   tag:
-    not-found: "Das Tag {0} existiert nicht"
+    not-found: "**Fehler**: Das Tag {0} existiert nicht"
+    use-slash-command: "**Fehler**: Dieser Tag kann nur mit /tag angezeigt werden."
     author: "von {0}"
   ex-f:
     used: "_@!sender via !f_\n\n{0}"
   react-roles:
     default-message: "Reagiere, um die Einstellungen zu treffen:"
-  
+
+  trust:
+    success: "{0} wird vertraut."
+    already-trusted: "**Fehler**: {0} wird bereits vertraut."
+  untrust:
+    success: "{0} wird nicht mehr vertraut."
+    not-trusted: "**Fehler**: {0} wurde nicht vertraut."
+
   general:
     join: "Wilkommen, @!sender!"
+    join-no-dm: "Wilkommen, @!sender!\n\n**Fehler**: Der Bot hat keine Berechtigung, DMs an dich zu senden. Dies kann zu Fehlern führen, da dies nicht vorhergesehen ist."
     welcome: "Willkommen in unserem MSS Server, @!sender!"

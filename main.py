@@ -1,11 +1,11 @@
 import os
-import re
 import random
 import dotenv
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext import tasks
 from config import Config
+from util import can_dm_user, format_string
 
 
 dotenv.load_dotenv()
@@ -14,6 +14,8 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 config = Config()
 lang = Config(default_to="id")
 tags = Config(default_to="none")
+
+format_string.bind(config=config, tags=tags)
 
 config.data = {}
 lang.data = {}
@@ -29,37 +31,6 @@ intents.presences = True
 intents.message_content = True
 intents.members = True
 bot = commands.Bot(intents=intents)
-
-
-def format_string(string, sender=None, thisis=None):
-    string = string.replace(r"@!sender", sender or "@here")
-
-    def replace1(match):
-        end = "" if match.group(2) == ">>" else " "
-        if match.group(1) not in config["roles"]:
-            return f"@{match.group(1)}{end}"
-        return f"<@&{config['roles'][match.group(1)]}>{end}"
-
-    string = re.sub(r"\@\&(\S*)(\s|\>\>)", replace1, string)
-
-    def replace2(match):
-        end = "" if match.group(2) == ">>" else " "
-        if match.group(1) not in config["channels"]:
-            return f"#{match.group(1)}{end}"
-        return f"<#{config['channels'][match.group(1)]}>{end}"
-
-    string = re.sub(r"#(\S*)(\s|\>\>)", replace2, string)
-
-    def replace3(match):
-        end = "" if match.group(2) == ">>" else " "
-        if match.group(1) not in tags.data.keys():
-            return f"!!{match.group(1)}{end}"
-        if match.group(1) == thisis:
-            return f"[...recursive]{end}"
-        return format_string(tags[match.group(1)] + end, thisis=match.group(1))
-
-    string = re.sub(r"!!(\S+?)(\s|\>\>)", replace3, string)
-    return string
 
 
 @tasks.loop(seconds=30)
@@ -116,11 +87,23 @@ async def update_presence():
 @bot.event
 async def on_ready():
     update_presence.start()
-    print(lang["messages.system.bot-ready"].format(bot.user))
 
 
-@bot.slash_command(
-    description=lang["commands.announce.description"], guild_ids=[config["guild"]]
+def get_parent_cmd(name, on=bot):
+    @on.slash_command(guild_ids=[config["guild"]], name=name)
+    async def announcement(interaction: nextcord.Interaction):
+        await interaction.send("That is impossible.", ephemeral=True)
+
+    return announcement
+
+
+slash_group_general = get_parent_cmd("mssbot")
+slash_group_announcement = get_parent_cmd("announcement")
+
+
+@slash_group_announcement.subcommand(
+    description=lang["commands.announce.description"],
+    name="create",
 )
 async def announce(
     interaction: nextcord.Interaction,
@@ -128,7 +111,7 @@ async def announce(
         "channel",
         lang["commands.announce.arguments.channel"],
         required=True,
-        choices=config["commands.announce"].keys(),
+        choices=config["commands.announce"].keys(), # pylint: disable=no-member
     ),
     message: str = nextcord.SlashOption(
         "message", lang["commands.announce.arguments.message"], required=True
@@ -218,8 +201,9 @@ async def announce(
     )
 
 
-@bot.slash_command(
-    description=lang["commands.editannounce.description"], guild_ids=[config["guild"]]
+@slash_group_announcement.subcommand(
+    description=lang["commands.editannounce.description"],
+    name="edit",
 )
 async def editannounce(
     interaction: nextcord.Interaction,
@@ -251,8 +235,8 @@ async def editannounce(
     # Only allow if has role Admin or Updater
     channel = next(
         key
-        for key, value in config["commands.announce"].items()
-        if config["channels"].get(value["channel"]) == channelid
+        for key, value in config["commands.announce"].items() # pylint: disable=no-member
+        if config["channels"].get(value["channel"]) == channelid # pylint: disable=no-member
     )
     if not any(
         role.id
@@ -295,10 +279,9 @@ async def editannounce(
     )
 
 
-@bot.slash_command(
+@slash_group_general.subcommand(
     description=lang["commands.reloadconfig.description"],
-    guild_ids=[config["guild"]],
-    name="reloadconfig",
+    name="reload",
 )
 async def reload_config(interaction: nextcord.Interaction):
     # Only allow if has role Admin
@@ -379,7 +362,9 @@ async def get_tag_autocomplete(interaction: nextcord.Interaction, input_: str):
 
 
 @bot.slash_command(
-    description=lang["commands.tag.description"], guild_ids=[config["guild"]]
+    description=lang["commands.tag.description"],
+    guild_ids=[config["guild"]],
+    name="tag",
 )
 async def tag(
     interaction: nextcord.Interaction,
@@ -401,8 +386,6 @@ async def tag(
     if isinstance(tag_content, dict):
         embed = nextcord.Embed()
         embed.title = tag_content.get("title")
-        if tag_content.get("content"):
-            print(format_string(tag_content.get("content")))
         embed.description = (
             format_string(t) if (t := tag_content.get("content")) is not None else None
         )
@@ -414,9 +397,10 @@ async def tag(
         embed.colour = nextcord.Colour.blurple()
         embed.set_image(url=tag_content.get("image"))
         embed.set_thumbnail(url=tag_content.get("thumbnail"))
-        embed.set_author(
-            name=tag_content.get("author"), icon_url=tag_content.get("author-icon")
-        )
+        if "author" in tag_content:
+            embed.set_author(
+                name=tag_content.get("author"), icon_url=tag_content.get("author-icon")
+            )
 
         return await interaction.response.send_message(
             (
@@ -432,8 +416,9 @@ async def tag(
     await interaction.response.send_message(tag_content)
 
 
-@bot.slash_command(
-    description=lang["commands.form.description"], guild_ids=[config["guild"]]
+@slash_group_general.subcommand(
+    description=lang["commands.form.description"],
+    name="formatmsg",
 )
 async def form(
     interaction: nextcord.Interaction,
@@ -447,6 +432,53 @@ async def form(
     await interaction.response.send_message(text)
 
 
+@bot.slash_command(
+    description=lang["commands.trust.description"],
+    name="trust",
+    guild_ids=[config["guild"]],
+)
+async def trust(
+    interaction: nextcord.Interaction,
+    member: nextcord.Member = nextcord.SlashOption(
+        "user",
+        lang["commands.trust.arguments.member"],
+        required=True,
+    ),
+):
+    trusted_role = member.guild.get_role(config["roles.trusted"])
+    if trusted_role in member.roles:
+        return await interaction.response.send_message(
+            lang["messages.trust.already-trusted"].format(member.mention), emphemeral=True
+        )
+    await member.add_roles(trusted_role)
+    await interaction.response.send_message(
+        lang["messages.trust.success"].format(member.mention)
+    )
+
+
+@bot.slash_command(
+    description=lang["commands.untrust.description"],
+    name="untrust",
+    guild_ids=[config["guild"]],
+)
+async def untrust(
+    interaction: nextcord.Interaction,
+    member: nextcord.Member = nextcord.SlashOption(
+        "user",
+        lang["commands.untrust.arguments.member"],
+        required=True,
+    ),
+):
+    trusted_role = member.guild.get_role(config["roles.trusted"])
+    if trusted_role not in member.roles:
+        return await interaction.response.send_message(
+            lang["messages.untrust.not-trusted"].format(member.mention), emphemeral=True
+        )
+    await member.remove_roles(trusted_role)
+    await interaction.response.send_message(
+        lang["messages.untrust.success"].format(member.mention)
+    )
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -458,14 +490,34 @@ async def on_message(message):
                 sender=message.author.mention,
             )
         )
+    if message.content.startswith("!!"):
+        if message.content[2:] not in tags:
+            await message.reply(
+                lang["messages.tag.not-found"].format(message.content[2:])
+            )
+            return
+        if isinstance(tags[message.content[2:]], dict):
+            await message.reply(
+                lang["messages.tag.use-slash-command"].format(message.content[2:])
+            )
+            return
+        await message.reply(
+            tags[message.content[2:]].format(sender=message.author.mention)
+        )
 
 
 @bot.event
 async def on_join(member):
-    await member.send(lang["messages.general.welcome"].format(member.mention))
-    await member.guild.get_channel(config["channels.off-topic"]).send(
-        lang["messages.general.join"].format(member.mention)
-    )
+    if can_dm_user(member):
+        await member.send(lang["messages.general.welcome"].format(member.mention))
+        await member.guild.get_channel(config["channels.off-topic"]).send(
+            lang["messages.general.join"].format(member.mention)
+        )
+    else:
+        await member.guild.get_channel(config["channels.off-topic"]).send(
+            lang["messages.general.join-no-dm"].format(member.mention)
+        )
+    await member.add_roles(member.guild.get_role(config["roles.new-member"]))
 
 
 @bot.event
