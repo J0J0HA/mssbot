@@ -1,5 +1,5 @@
 commands:
-  announce:
+  announcement-create:
     description: "Eine Ankündigung veröffentlichen"
     arguments:
       channel: "Kanal, in dem die Ankündigung veröffentlicht werden soll"
@@ -8,19 +8,19 @@ commands:
       image: "Ein Bild, das der Ankündigung angefügt wird"
       thumbnail: "Ein kleines Bild, das der Ankündigung angefügt wird"
       attachment: "Ein Anhang, z.B. eine PDF"
-  editannounce:
+  announcement-edit:
     description: "Eine Ankündigung bearbeiten"
     arguments:
       msgid: "Nachrichtenlink zu der Ankündigung"
       message: "Nachricht der Ankündigung, falls Änderung erwünscht"
       title: "Titel der Ankündigung, falls Änderung erwünscht"
-  reloadconfig:
+  mssbot-reload:
     description: "Einstellungen des Bots neu laden"
   tag:
     description: "Eine vorgefertigte Nachricht posten"
     arguments:
       tag: "Den Tag der Nachricht"
-  form:
+  mssbot-formatmsg:
     description: "Eine Nachricht senden und den Inhalt formatieren (!f kann auch verwendet werden)"
     arguments:
       text: "Der zu formatierende Text"
@@ -32,6 +32,8 @@ commands:
     description: "Einen Nutzer von den Vertrauten entfernen"
     arguments:
       member: "Der zu Entfernende Nutzer"
+  mssbot-stop:
+    description: "Den Bot ausschalten oder neu starten"
 
 messages:
   no-permission:
@@ -46,6 +48,7 @@ messages:
     error: "Die Ankündigung konnte nicht bearbeitet werden: {0}"
   system:
     bot-ready: "Wir sind als {0} eingeloggt."
+    bot-stop-response: "Wird ausgeschaltet..."
   reload:
     trying: "Versuche, Konfigurationsdateien neu zu laden..."
     failed: "Es ist ein Fehler aufgetreten.\n\n```\n{0}\n```"
