@@ -1,8 +1,8 @@
 import os
 import dotenv
 
-from config import Config
-from util import format_string
+from utils.config import Config
+from utils.general import format_string
 
 
 dotenv.load_dotenv()

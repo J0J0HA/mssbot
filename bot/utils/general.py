@@ -1,4 +1,3 @@
-import nextcord
 import re
 
 
@@ -61,15 +60,6 @@ class BindableFunction:
 def bindable(func):
     return BindableFunction(func)
 
-
-async def can_dm_user(user: nextcord.User) -> bool:
-    try:
-        await user.send()
-    except nextcord.Forbidden:
-        return False
-    except nextcord.HTTPException:
-        return True
-    raise ValueError("Unexpected success occurred while checking if user can be DMed.")
 
 
 @bindable

@@ -2,11 +2,9 @@ import random
 import nextcord
 from nextcord.ext import commands
 from nextcord.ext import tasks
-from config import KEY
-from dcutils import cmddef, argdef, gcmddef
-from util import can_dm_user
-from cconf import BOT_TOKEN, config, lang, tags, format_string
-from dcutils import require_any_role_of, require_role
+from utils.config import KEY
+from utils.discord import cmddef, argdef, gcmddef, require_role, can_dm_user
+from conf import BOT_TOKEN, config, lang, tags, format_string
 
 intents = nextcord.Intents.default()
 intents.presences = True

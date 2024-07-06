@@ -1,7 +1,7 @@
 while :
 do
 echo "---STARTED---"
-poetry run python main.py
+poetry run python bot
 echo "---STOPPED---"
 sleep 5
 echo .
