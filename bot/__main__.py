@@ -4,7 +4,17 @@ from nextcord.ext import commands
 from nextcord.ext import tasks
 from utils.config import KEY
 from utils.discord import cmddef, argdef, gcmddef, require_role, can_dm_user
-from conf import BOT_TOKEN, config, lang, tags, format_string
+from conf import (
+    BOT_TOKEN,
+    config,
+    lang,
+    tags,
+    format_string,
+    reload_config,
+    config_file,
+    lang_file,
+    tags_file,
+)
 
 intents = nextcord.Intents.default()
 intents.presences = True
@@ -106,19 +116,29 @@ async def announce(
         "image", lang.gstr(KEY.commands.announce.arguments.image()), required=False
     ),
     thumbnail: nextcord.Attachment = nextcord.SlashOption(
-        "thumbnail", lang.gstr(KEY.commands.announce.arguments.thumbnail()), required=False
+        "thumbnail",
+        lang.gstr(KEY.commands.announce.arguments.thumbnail()),
+        required=False,
     ),
     attachment1: nextcord.Attachment = nextcord.SlashOption(
-        "attachment1", lang.gstr(KEY.commands.announce.arguments.attachment()), required=False
+        "attachment1",
+        lang.gstr(KEY.commands.announce.arguments.attachment()),
+        required=False,
     ),
     attachment2: nextcord.Attachment = nextcord.SlashOption(
-        "attachment2", lang.gstr(KEY.commands.announce.arguments.attachment()), required=False
+        "attachment2",
+        lang.gstr(KEY.commands.announce.arguments.attachment()),
+        required=False,
     ),
     attachment3: nextcord.Attachment = nextcord.SlashOption(
-        "attachment3", lang.gstr(KEY.commands.announce.arguments.attachment()), required=False
+        "attachment3",
+        lang.gstr(KEY.commands.announce.arguments.attachment()),
+        required=False,
     ),
     attachment4: nextcord.Attachment = nextcord.SlashOption(
-        "attachment4", lang.gstr(KEY.commands.announce.arguments.attachment()), required=False
+        "attachment4",
+        lang.gstr(KEY.commands.announce.arguments.attachment()),
+        required=False,
     ),
 ):
     # Only allow if has role Admin or Updater
@@ -128,7 +148,9 @@ async def announce(
             config.gint(KEY.roles.admin()),
             *(
                 config.gobj(KEY.roles())[roleid]
-                for roleid in config.glist(KEY.commands.announce[channel].allowed_senders())
+                for roleid in config.glist(
+                    KEY.commands.announce[channel].allowed_senders()
+                )
             ),
         )
         for role in interaction.user.roles
@@ -137,12 +159,16 @@ async def announce(
             lang.gstr(KEY.messages.no_permission.to_run_command()), ephemeral=True
         )
     dc_channel = bot.get_channel(
-        config.gint(KEY.channels[config.gobj(KEY.commands.announce())[channel].channel]())
+        config.gint(
+            KEY.channels[config.gobj(KEY.commands.announce())[channel].channel]()
+        )
     )
 
     embed = nextcord.Embed()
     embed.title = title
-    embed.description = format_string(message, sender=interaction.user.mention if interaction.user else None)
+    embed.description = format_string(
+        message, sender=interaction.user.mention if interaction.user else None
+    )
     if image:
         embed.set_image(url=image.url)
     if thumbnail:
@@ -192,7 +218,9 @@ async def editannounce(
         required=True,
     ),
     message: str = nextcord.SlashOption(
-        "message", lang.gstr(KEY.commands.editannounce.arguments.message()), required=False
+        "message",
+        lang.gstr(KEY.commands.editannounce.arguments.message()),
+        required=False,
     ),
     title: str = nextcord.SlashOption(
         "title",
@@ -224,7 +252,9 @@ async def editannounce(
             config.gint(KEY.roles.admin()),
             *(
                 config.gobj(KEY.roles())[roleid]
-                for roleid in config.gobj(KEY.commands.announce())[channel]["allowed-senders"]
+                for roleid in config.gobj(KEY.commands.announce())[channel][
+                    "allowed-senders"
+                ]
             ),
         )
         for role in interaction.user.roles
@@ -253,43 +283,25 @@ async def editannounce(
     )
 
     await interaction.response.send_message(
-        lang.gstr(KEY.messages.announcements.edited()).format(len(initial_message.attachments)),
+        lang.gstr(KEY.messages.announcements.edited()).format(
+            len(initial_message.attachments)
+        ),
         ephemeral=True,
         embed=embed,
     )
 
 
-@slash_group_general.subcommand(
-    **cmddef("mssbot", "reload"),
-)
-async def reload_config(interaction: nextcord.Interaction):
-    # Only allow if has role Admin
-    if not any(role.id == config.gint(KEY.roles.admin()) for role in interaction.user.roles):
-        return await interaction.response.send_message(
-            lang.gstr(KEY.messages.no_permission.to_run_command()), ephemeral=True
-        )
-
-    message = await interaction.response.send_message(
-        lang.gstr(KEY.messages.reload.trying()), ephemeral=True
-    )
-
-    _config = config.data
-    _lang = lang.data
-    _tags = tags.data
-    try:
-        config.data = {}
-        lang.data = {}
-        tags.data = {}
-
-        config.load("config.yaml")
-        lang.load("language.yaml")
-        tags.load("tags.yaml")
+async def reload_config_backend():
+    with config_file.try_to_change(), lang_file.try_to_change(), tags_file.try_to_change():
+        reload_config()
 
         if not update_presence.is_running():
             update_presence.start()
+            
+        rmessage: nextcord.Message
 
         if config.gint(KEY.features.react_roles.message(), None) is None:
-            rmessage = await bot.get_channel(
+            rmessage: nextcord.Message = await bot.get_channel(
                 config.gint(KEY.features.react_roles.channel())
             ).send(
                 lang.gstr(KEY.messages.react_roles.default_message())
@@ -299,12 +311,11 @@ async def reload_config(interaction: nextcord.Interaction):
                     for entry in config.glist(KEY.features.react_roles.roles())
                 )
             )
+            config.set(KEY.features.react_roles.message(), rmessage.id)
             for entry in config.glist(KEY.features.react_roles.roles()):
                 await rmessage.add_reaction(entry["emoji"])
-            config.set(KEY.features.react_roles.message(), rmessage.id)
-            config.save()
         else:
-            rmessage = await bot.get_channel(
+            rmessage: nextcord.Message = await bot.get_channel(
                 config.gint(KEY.features.react_roles.channel())
             ).fetch_message(config.gint(KEY.features.react_roles.message()))
             await rmessage.edit(
@@ -323,15 +334,34 @@ async def reload_config(interaction: nextcord.Interaction):
                     await rmessage.clear_reaction(reaction.emoji)
             for entry in config.glist(KEY.features.react_roles.roles()):
                 if not any(
-                    reaction.emoji == entry["emoji"] for reaction in rmessage.reactions
-                ):
+                    entry["emoji"] == reaction.emoji
+                    for reaction in rmessage.reactions
+                    if reaction.me
+                    ):
                     await rmessage.add_reaction(entry["emoji"])
+
+
+@slash_group_general.subcommand(
+    **cmddef("mssbot", "reload"),
+)
+async def reload_config_cmd(interaction: nextcord.Interaction):
+    # Only allow if has role Admin
+    if not any(
+        role.id == config.gint(KEY.roles.admin()) for role in interaction.user.roles
+    ):
+        return await interaction.response.send_message(
+            lang.gstr(KEY.messages.no_permission.to_run_command()), ephemeral=True
+        )
+
+    message = await interaction.response.send_message(
+        lang.gstr(KEY.messages.reload.trying()), ephemeral=True
+    )
+
+    try:
+        await reload_config_backend()
     except Exception as e:
-        config.data = _config
-        lang.data = _lang
-        tags.data = _tags
-        await message.edit(content=lang.gstr(KEY.messages.reload.failed()).format(e))
-        raise e
+        await message.edit(content=lang.gstr(KEY.messages.reload.failed()).format(f"{e.__class__.__name__}: {e}"))
+        raise e from None
 
     await message.edit(content=lang.gstr(KEY.messages.reload.success()))
 
@@ -422,7 +452,8 @@ async def trust(
     trusted_role = member.guild.get_role(config.gint(KEY.roles.trusted()))
     if trusted_role in member.roles:
         return await interaction.response.send_message(
-            lang.gstr(KEY.messages.trust.already_trusted()).format(member.mention), ephemeral=True
+            lang.gstr(KEY.messages.trust.already_trusted()).format(member.mention),
+            ephemeral=True,
         )
     await member.add_roles(trusted_role)
     await interaction.response.send_message(
@@ -445,13 +476,15 @@ async def untrust(
     trusted_role = member.guild.get_role(config.gint(KEY.roles.trusted()))
     if trusted_role not in member.roles:
         return await interaction.response.send_message(
-            lang.gstr(KEY.messages.untrust.not_trusted()).format(member.mention), ephemeral=True
+            lang.gstr(KEY.messages.untrust.not_trusted()).format(member.mention),
+            ephemeral=True,
         )
     await member.remove_roles(trusted_role)
     await interaction.response.send_message(
         lang.gstr(KEY.messages.untrust.success()).format(member.mention)
     )
-    
+
+
 @slash_group_general.subcommand(
     **cmddef("mssbot", "stop"),
 )
@@ -459,8 +492,11 @@ async def untrust(
 async def stop(
     interaction: nextcord.Interaction,
 ):
-    await interaction.response.send_message(lang.gstr(KEY.messages.system.bot_stop_response()), ephemeral=True)
+    await interaction.response.send_message(
+        lang.gstr(KEY.messages.system.bot_stop_response()), ephemeral=True
+    )
     await bot.close()
+
 
 @bot.event
 async def on_message(message):
@@ -481,7 +517,9 @@ async def on_message(message):
             return
         if isinstance(tags[message.content[2:]], dict):
             await message.reply(
-                lang.gstr(KEY.messages.tag.use_slash_command()).format(message.content[2:])
+                lang.gstr(KEY.messages.tag.use_slash_command()).format(
+                    message.content[2:]
+                )
             )
             return
         await message.reply(
@@ -492,7 +530,9 @@ async def on_message(message):
 @bot.event
 async def on_join(member):
     if can_dm_user(member):
-        await member.send(lang.gstr(KEY.messages.general.welcome()).format(member.mention))
+        await member.send(
+            lang.gstr(KEY.messages.general.welcome()).format(member.mention)
+        )
         await member.guild.get_channel(config.gint(KEY.channels.off_topic())).send(
             lang.gstr(KEY.messages.general.join()).format(member.mention)
         )
@@ -505,6 +545,8 @@ async def on_join(member):
 
 @bot.event
 async def on_raw_reaction_add(reaction):
+    if reaction.user_id == bot.user.id:
+        return
     if reaction.message_id == config.gint(KEY.features.react_roles.message()):
         message = await bot.get_channel(
             config.gint(KEY.features.react_roles.channel())
@@ -525,6 +567,8 @@ async def on_raw_reaction_add(reaction):
 
 @bot.event
 async def on_raw_reaction_remove(reaction):
+    if reaction.user_id == bot.user.id:
+        return
     if reaction.message_id == config.gint(KEY.features.react_roles.message()):
         if reaction.emoji.name not in (
             entry["emoji"] for entry in config.glist(KEY.features.react_roles.roles())
@@ -538,6 +582,7 @@ async def on_raw_reaction_remove(reaction):
         dc_role = bot.get_guild(config.glint(KEY.guild())).get_role(role)
         member = bot.get_guild(config.glint(KEY.guild())).get_member(reaction.user_id)
         await member.remove_roles(dc_role)
+
 
 if __name__ == "__main__":
     bot.run(BOT_TOKEN)

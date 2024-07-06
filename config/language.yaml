@@ -1,0 +1,89 @@
+commands:
+  announcement-create:
+    arguments:
+      attachment: Ein Anhang, z.B. eine PDF
+      channel: "Kanal, in dem die Ank\xFCndigung ver\xF6ffentlicht werden soll"
+      image: "Ein Bild, das der Ank\xFCndigung angef\xFCgt wird"
+      message: "Nachricht der Ank\xFCndigung"
+      thumbnail: "Ein kleines Bild, das der Ank\xFCndigung angef\xFCgt wird"
+      title: "Titel der Ank\xFCndigung"
+    description: "Eine Ank\xFCndigung ver\xF6ffentlichen"
+  announcement-edit:
+    arguments:
+      message: "Nachricht der Ank\xFCndigung, falls \xC4nderung erw\xFCnscht"
+      msgid: "Nachrichtenlink zu der Ank\xFCndigung"
+      title: "Titel der Ank\xFCndigung, falls \xC4nderung erw\xFCnscht"
+    description: "Eine Ank\xFCndigung bearbeiten"
+  mssbot-formatmsg:
+    arguments:
+      text: Der zu formatierende Text
+    description: Eine Nachricht senden und den Inhalt formatieren (!f kann auch verwendet
+      werden)
+  mssbot-reload:
+    description: Einstellungen des Bots neu laden
+  mssbot-stop:
+    description: Den Bot ausschalten oder neu starten
+  tag:
+    arguments:
+      tag: Den Tag der Nachricht
+    description: Eine vorgefertigte Nachricht posten
+  trust:
+    arguments:
+      member: Der zu Vertrauende Nutzer
+    description: "Einen Nutzer zu den Vertrauten hinzuf\xFCgen"
+  untrust:
+    arguments:
+      member: Der zu Entfernende Nutzer
+    description: Einen Nutzer von den Vertrauten entfernen
+messages:
+  announcements:
+    author: von {0}
+    author_edited: von {0} bearbeitet
+    default-title: ":mailbox: Ank\xFCndigung"
+    edited: ":white_check_mark: Die Ank\xFCndigung wurde bearbeitet und hat {0} Anh\xE4\
+      nge."
+    error: "Die Ank\xFCndigung konnte nicht bearbeitet werden: {0}"
+    note-manually: "Manuelle Ank\xFCndigung"
+    published: ":white_check_mark: Die Ank\xFCndigung wurde mit {0} Anh\xE4ngen ver\xF6\
+      ffentlicht."
+  ex-f:
+    used: '_@!sender via !f_
+
+
+      {0}'
+  general:
+    join: Wilkommen, @!sender!
+    join-no-dm: "Wilkommen, @!sender!\n\n**Fehler**: Der Bot hat keine Berechtigung,\
+      \ DMs an dich zu senden. Dies kann zu Fehlern f\xFChren, da dies nicht vorhergesehen\
+      \ ist."
+    welcome: Willkommen in unserem MSS Server, @!sender!
+  no-permission:
+    to-run-command: ":no_entry: Du hast keine Berechtigung, diesen Befehl auszuf\xFC\
+      hren!"
+  react-roles:
+    default-message: 'Reagiere, um die Einstellungen zu treffen:'
+  reload:
+    failed: 'Es ist ein Fehler aufgetreten.
+
+
+      ```
+
+      {0}
+
+      ```'
+    success: Erfolgreich neu geladen. Um manche Einstellungen neu zu laden, muss der
+      Bot allerdings neu gestartet werden.
+    trying: Versuche, Konfigurationsdateien neu zu laden...
+  system:
+    bot-ready: Wir sind als {0} eingeloggt.
+    bot-stop-response: Wird ausgeschaltet...
+  tag:
+    author: von {0}
+    not-found: '**Fehler**: Das Tag {0} existiert nicht'
+    use-slash-command: '**Fehler**: Dieser Tag kann nur mit /tag angezeigt werden.'
+  trust:
+    already-trusted: '**Fehler**: {0} wird bereits vertraut.'
+    success: '{0} wird vertraut.'
+  untrust:
+    not-trusted: '**Fehler**: {0} wurde nicht vertraut.'
+    success: '{0} wird nicht mehr vertraut.'

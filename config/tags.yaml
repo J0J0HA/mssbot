@@ -1,0 +1,20 @@
+atomation-incoming: 'Bald werden Nachrichten in #mss-news automatisch aus !!luntis>>-Benachrichtigungen
+  und !!lwwschool>>-Emails generiert.
+
+  '
+dcinvite: https://discord.gg/tZX2G8PmBS
+ds-probestunde: "Um im DS Grundkurs zu sein, **muss** man an der Probestunde teilgenommen\
+  \ haben.\n\nDu kannst dich auf !!lwwschool>> \xFCber ein Formular, das auf der Seite\
+  \ diener jeweiligen Klasse zu finden ist, anmelden; Anmeldeschluss ist am <t:1708556340:D>,\
+  \ also <t:1708556340:R>.\n\nTermine der einzelnen Klassen:\n10a: <t:1709115900:F>,\
+  \ <t:1709115900:R>\n10b: <t:1709288700:F>, <t:1709288700:R>\nAus den anderen Klassen\
+  \ gab es bisher keine R\xFCckmeldung.\n\n> Diese Informationen stammen aus unserer\
+  \ !!lwagroup>> und aus !!luntis>>\n"
+faq-invite-others:
+  content: "Schicke diesen Link an alle, die auf diesen Server geh\xF6ren: !!dcinvite>>"
+  title: Wie kann ich andere auf den Server einladen?
+ldcinvite: '[Discord-Server](https://discord.gg/tZX2G8PmBS)'
+lschulhomepage: '[Schulhomepage](https://schollonline.de/)'
+luntis: '[Untis](https://asopo.webuntis.com/WebUntis/?school=gsg-ludwigshafen)'
+lwagroup: '[Whatsapp-Gruppe](https://err.jojojux.de/404.html)'
+lwwschool: '[WWSchool](https://wwschool.de/)'

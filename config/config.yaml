@@ -1,0 +1,55 @@
+channels:
+  mss-news: 1208870841291645019
+  off-topic: 1202175253229600780
+  server-news: 1208900845337583676
+commands:
+  announce:
+    mss:
+      allowed-senders:
+      - updater
+      channel: mss-news
+      ping-role: mss-news
+    server:
+      allowed-senders:
+      - mod
+      channel: server-news
+      ping-role: server-news
+features:
+  react-roles:
+    channel: 1204870259517947915
+    message: 1209265343017525320
+    roles:
+    - description: Ping bei MSS-Benachrichtigungen erhalten
+      emoji: "\U0001F4EB"
+      role: 1208921680517529710
+    - description: Ping bei Server-Benachrichtigungen erhalten
+      emoji: "\U0001F504"
+      role: 1208913716385415250
+guild: 1202175252420120586
+profile:
+  activities:
+  - name: sich seltsame Memes an
+    type: watching
+  - name: "eine Anfl\xE4chsgriffe an"
+    type: watching
+  - name: Herr Hinnerichs beim Niesen
+    type: listening
+  - name: "einer Flute (nicht Fl\xF6te)"
+    type: listening
+  - name: "\"Ich hab keinen Bock mehr auf diese Schei\xDFe.\" - Carmela"
+    type: listening
+  - name: '"Ich habe Probleme." - Eric'
+    type: listening
+  - name: Discordbot-Simulator
+    type: playing
+  names:
+  - MSSBot
+  nicks:
+  - MSSBot
+roles:
+  admin: 1204873197309272154
+  mod: 1204872635566133248
+  mss-news: 1208921680517529710
+  server-news: 1208913716385415250
+  trusted: 1204872856400568412
+  updater: 1204873098134822962

@@ -1,10 +1,17 @@
+import copy
+import os
+from pathlib import Path
+import shutil
 from typing_extensions import deprecated
 import yaml
 from typing import Optional, Union
 
 
+class UNSET: ...
+
+
 class Config:
-    def __init__(self, default_to: Optional[str] = None) -> None:
+    def __init__(self, default_to: Optional[str] = UNSET) -> None:
         self.default_to: Optional[str] = default_to
         self.data: dict = {}
         self.load()
@@ -12,15 +19,19 @@ class Config:
     def update(self, data: dict) -> None:
         self.data.update(data)
 
-    def load(self, path: str = "config.yaml") -> None:
-        with open(path, "r", encoding="utf-8") as file:
-            self.update(yaml.safe_load(file) or {})
+    def load(self, path: str | Path = "config.yaml") -> None:
+        if not isinstance(path, Path):
+            path = Path(path)
+        if not path.exists():
+            return
+        self.update(yaml.safe_load(path.read_text(encoding="utf-8")) or {})
 
-    def save(self, path: str = "config.yaml") -> None:
-        with open(path, "w", encoding="utf-8") as file:
-            yaml.dump(self.data, file)
+    def save(self, path: str | Path = "config.yaml") -> None:
+        if not isinstance(path, Path):
+            path = Path(path)
+        path.write_bytes(yaml.dump(self.data, encoding="utf-8"))
 
-    def gobj(self, key: str, default: Optional[dict] = None) -> dict:
+    def gobj(self, key: str, default: Optional[dict] = UNSET) -> dict:
         parts = key.rsplit(".", 1)
         child = parts[-1]
         if len(parts) == 1:
@@ -29,7 +40,7 @@ class Config:
             data = self.gobj(parts[0])
         if child in data:
             return data[child]
-        return default if default is not None else {}
+        return default if default is not UNSET else {}
 
     def glist(self, key: str, default: Optional[list] = None) -> list:
         parts = key.rsplit(".", 1)
@@ -40,9 +51,9 @@ class Config:
             data = self.gobj(parts[0])
         if child in data:
             return data[child]
-        return default if default is not None else []
+        return default if default is not UNSET else []
 
-    def gstr(self, key: str, default: Optional[str] = None) -> str:
+    def gstr(self, key: str, default: Optional[str] = UNSET) -> str:
         parts = key.rsplit(".", 1)
         child = parts[-1]
         if len(parts) == 1:
@@ -51,9 +62,9 @@ class Config:
             data = self.gobj(parts[0])
         if child in data:
             return data[child]
-        return default if default is not None else key
-    
-    def gint(self, key: str, default: Optional[int] = None) -> int:
+        return default if default is not UNSET else key
+
+    def gint(self, key: str, default: Optional[int] = UNSET) -> int:
         parts = key.rsplit(".", 1)
         child = parts[-1]
         if len(parts) == 1:
@@ -62,11 +73,12 @@ class Config:
             data = self.gobj(parts[0])
         if child in data:
             return data[child]
-        if default is not None:
+        if default is not UNSET:
             return default
         raise KeyError(key)
-    
+
     def set(self, key: str, value) -> None:
+        print("Setting", key, value)
         parts = key.split(".")
         data = self.data
         for part in parts[:-1]:
@@ -128,6 +140,56 @@ class Config:
         return len(self.data)
 
 
+class ConfigFile:
+    def __init__(self, path: str | Path, **options) -> None:
+        if not isinstance(path, Path):
+            path = Path(path)
+        self.path = path
+        self.config = Config(**options)
+        self.config.load(self.path)
+        self.start_raw_hash = hash(self.path.read_text(encoding="utf-8"))
+        self.start_hash = hash(yaml.dump(self.config.data))
+
+    def save(self) -> None:
+        if hash(yaml.dump(self.config.data)) == self.start_hash:
+            return
+        if self.path.exists() and hash(self.path.read_text(encoding="utf-8")) != self.start_raw_hash:
+            self.path.with_suffix(f"{self.path.suffix}.{len(list(self.path.parent.glob(str(self.path.with_suffix('')) + '*.bak')))}.bak")
+            shutil.move(self.path, self.path)
+            print("Config file merge conflict, backing up to", self.path.with_suffix(f"{self.path.suffix}.bak"))
+        self.config.save(self.path)
+
+    def update(self) -> None:
+        self.save()
+        self.config.load(self.path)
+
+    def get_backup(self) -> dict:
+        return copy.deepcopy(self.config.data)
+
+    def restore_backup(self, backup: dict) -> None:
+        self.config.data = backup
+
+    def __del__(self) -> None:
+        self.save()
+
+    def try_to_change(self) -> "TryChangeConfig":
+        return TryChangeConfig(self)
+
+
+class TryChangeConfig:
+    backup: Optional[dict] = None
+
+    def __init__(self, config_file: ConfigFile) -> None:
+        self.config_file = config_file
+
+    def __enter__(self) -> Config:
+        self.backup = self.config_file.get_backup()
+
+    def __exit__(self, exc_type, exc_value, exc_traceback) -> None:
+        if exc_type:
+            self.config_file.restore_backup(self.backup)
+
+
 class Key:
     def __init__(self, key: Optional[list] = None) -> None:
         self.key = key or []
@@ -137,17 +199,18 @@ class Key:
         if self.key:
             return Key(self.key + [key])
         return Key([key])
-    
+
     def __getitem__(self, key: str) -> "Key":
         return self.__getattr__(key)
 
     def __str__(self) -> str:
         return ".".join(self.key)
-    
+
     def __repr__(self) -> str:
         return f"KEY.{self.key}"
-    
+
     def __call__(self) -> str:
         return str(self)
-        
+
+
 KEY = Key()
